@@ -1,3 +1,5 @@
+use crate::ExtraArgs;
+
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct DiffConfig {
     #[serde(flatten)]
@@ -50,17 +52,18 @@ impl DiffConfig {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
-pub struct DiffArgs {}
-
 #[allow(dead_code)]
 impl DiffProfile {
-    pub async fn diff(&self, args: DiffArgs) -> anyhow::Result<String> {
-        let res1 = self.req1.send(&args).await?;
-        let res2 = self.req2.send(&args).await?;
-        let text1 = res1.filter_text(&self.res).await?;
-        let text2 = res2.filter_text(&self.res).await?;
-        Ok(text_diff(text1, text2))
+    pub async fn diff(&self, args: ExtraArgs) -> anyhow::Result<String> {
+        // let res1 = self.req1.send(&args).await?;
+        // let res2 = self.req2.send(&args).await?;
+        // let text1 = res1.filter_text(&self.res).await?;
+        // let text2 = res2.filter_text(&self.res).await?;
+
+        println!("{:?}", self);
+        println!("{:?}", args);
+        todo!()
+        // Ok(text_diff(text1, text2))
     }
 }
 
@@ -68,7 +71,7 @@ impl DiffProfile {
 pub struct WrapResponse {}
 
 impl RequestProfile {
-    pub async fn send(&self, args: &DiffArgs) -> anyhow::Result<WrapResponse> {
+    pub async fn send(&self, args: &ExtraArgs) -> anyhow::Result<WrapResponse> {
         todo!()
     }
 }
