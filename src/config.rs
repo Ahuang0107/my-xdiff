@@ -1,5 +1,7 @@
 use std::io::Write;
 
+use anyhow::Context;
+
 use crate::ExtraArgs;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
@@ -12,10 +14,15 @@ pub struct DiffConfig {
 pub struct DiffProfile {
     pub req1: crate::req::RequestProfile,
     pub req2: crate::req::RequestProfile,
+    #[serde(skip_serializing_if = "is_default", default)]
     pub res: ResponseProfile,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+fn is_default<T: Default + PartialEq>(v: &T) -> bool {
+    v == &T::default()
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default, PartialEq, Eq)]
 pub struct ResponseProfile {
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub skip_headers: Vec<String>,
@@ -30,10 +37,20 @@ impl DiffConfig {
         Self::from_yaml(&content)
     }
     pub fn from_yaml(content: &str) -> anyhow::Result<Self> {
-        Ok(serde_yaml::from_str(content)?)
+        let config = serde_yaml::from_str::<Self>(content)?;
+        config.validate()?;
+        Ok(config)
     }
     pub fn get_profile(&self, name: &str) -> Option<&DiffProfile> {
         self.profiles.get(name)
+    }
+    fn validate(&self) -> anyhow::Result<()> {
+        for (name, profile) in &self.profiles {
+            profile
+                .validate()
+                .context(format!("failed to validate profile: {}", name))?;
+        }
+        Ok(())
     }
 }
 
@@ -49,6 +66,11 @@ impl DiffProfile {
         let stdout = std::io::stdout();
         let mut stdout = stdout.lock();
         write!(stdout, "{}", output)?;
+        Ok(())
+    }
+    fn validate(&self) -> anyhow::Result<()> {
+        self.req1.validate().context("req1 failed to validate")?;
+        self.req2.validate().context("req2 failed to validate")?;
         Ok(())
     }
 }

@@ -113,12 +113,29 @@ impl RequestProfile {
             _ => Err(anyhow::anyhow!("unsupported content-type")),
         }
     }
+    pub fn validate(&self) -> anyhow::Result<()> {
+        if let Some(params) = self.params.as_ref() {
+            if !params.is_object() {
+                return Err(anyhow::anyhow!(
+                    "Params must be an object but got\n{}",
+                    serde_yaml::to_string(params)?
+                ));
+            }
+        }
+        if let Some(body) = self.body.as_ref() {
+            if !body.is_object() {
+                return Err(anyhow::anyhow!(
+                    "Body must be an object but got\n{}",
+                    serde_yaml::to_string(body)?
+                ));
+            }
+        }
+        Ok(())
+    }
 }
 
 fn get_content_type(headers: &http::header::HeaderMap) -> Option<String> {
     headers
         .get(http::header::CONTENT_TYPE)
-        .map(|v| v.to_str().unwrap().split(';').next())
-        .flatten()
-        .map(|v| v.to_string())
+        .and_then(|v| v.to_str().unwrap().split(';').next().map(|v| v.to_string()))
 }
