@@ -1,8 +1,7 @@
 ---
 rust:
   req1:
-    method: GET
-    url: https://www.reust-lang.org/
+    url: https://www.rust-lang.org/
     headers:
       user-agent: Aloha
     params:
@@ -14,4 +13,43 @@ rust:
   res:
     skip_headers:
       - set-cookie
-      - data
+      - date
+      - via
+      - x-amz-cf-id
+todo:
+  req1:
+    url: https://jsonplaceholder.typicode.com/todos/1
+    params:
+      a: 100
+  req2:
+    url: https://jsonplaceholder.typicode.com/todos/2
+    params:
+      c: 200
+  res:
+    skip_headers:
+      - report-to
+      - set-cookie
+      - date
+      - via
+      #      - content-length
+      - x-amz-cf-id
+      - x-powered-by
+      - x-ratelimit-limit
+      - x-ratelimit-remaining
+      - x-ratelimit-reset
+      - access-control-allow-credentials
+      - cache-control
+      - pragma
+      - expires
+      - x-content-type-options
+      - etag
+      - cf-cache-status
+      - age
+      - accept-ranges
+      - server-timing
+      - nel
+      - server
+      - cf-ray
+      - alt-svc
+    skip_body:
+      - id

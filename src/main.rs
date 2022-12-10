@@ -27,5 +27,5 @@ async fn run(args: RunArgs) -> anyhow::Result<()> {
     })?;
     let extra_args = args.extra_params.into();
     profile.diff(extra_args).await?;
-    todo!()
+    Ok(())
 }

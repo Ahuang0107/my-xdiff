@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use crate::ExtraArgs;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
@@ -8,26 +10,9 @@ pub struct DiffConfig {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct DiffProfile {
-    pub req1: RequestProfile,
-    pub req2: RequestProfile,
+    pub req1: crate::req::RequestProfile,
+    pub req2: crate::req::RequestProfile,
     pub res: ResponseProfile,
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
-pub struct RequestProfile {
-    #[serde(with = "http_serde::method")]
-    pub method: http::method::Method,
-    pub url: url::Url,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub params: Option<serde_json::Value>,
-    #[serde(
-        skip_serializing_if = "http::HeaderMap::is_empty",
-        with = "http_serde::header_map",
-        default
-    )]
-    pub headers: http::HeaderMap,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub body: Option<serde_json::Value>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
@@ -54,36 +39,18 @@ impl DiffConfig {
 
 #[allow(dead_code)]
 impl DiffProfile {
-    pub async fn diff(&self, args: ExtraArgs) -> anyhow::Result<String> {
-        // let res1 = self.req1.send(&args).await?;
-        // let res2 = self.req2.send(&args).await?;
-        // let text1 = res1.filter_text(&self.res).await?;
-        // let text2 = res2.filter_text(&self.res).await?;
+    pub async fn diff(&self, args: ExtraArgs) -> anyhow::Result<()> {
+        let res1 = self.req1.send(&args).await?;
+        let res2 = self.req2.send(&args).await?;
+        let text1 = res1.filter_text(&self.res).await?;
+        let text2 = res2.filter_text(&self.res).await?;
 
-        println!("{:?}", self);
-        println!("{:?}", args);
-        todo!()
-        // Ok(text_diff(text1, text2))
+        let output = crate::utils::diff_text(&text1, &text2)?;
+        let stdout = std::io::stdout();
+        let mut stdout = stdout.lock();
+        write!(stdout, "{}", output)?;
+        Ok(())
     }
-}
-
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
-pub struct WrapResponse {}
-
-impl RequestProfile {
-    pub async fn send(&self, args: &ExtraArgs) -> anyhow::Result<WrapResponse> {
-        todo!()
-    }
-}
-
-impl WrapResponse {
-    pub async fn filter_text(&self, res: &ResponseProfile) -> anyhow::Result<&str> {
-        todo!()
-    }
-}
-
-pub fn text_diff(t1: &str, t2: &str) -> String {
-    todo!()
 }
 
 #[cfg(test)]

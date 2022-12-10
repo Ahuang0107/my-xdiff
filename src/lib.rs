@@ -1,5 +1,7 @@
 pub mod cli;
 pub mod config;
+pub mod req;
+pub mod utils;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExtraArgs {
